@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b4361f">
+<title>Pizza Dough</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>🍕 Pizza Dough</h1>
+  <nav>
+    <button data-tab="calc" class="active">Calculator</button>
+    <button data-tab="recipes">Recipes <span id="recipeCount"></span></button>
+  </nav>
+</header>
+
+<main id="tab-calc">
+  <section class="card">
+    <div class="row between"><h2>Recipe</h2><button class="small ghost" id="newBtn">New</button></div>
+    <label>Name <input data-k="name" type="text" placeholder="e.g. NY 68% poolish"></label>
+    <label>Style <input data-k="style" type="text" list="styles"></label>
+    <datalist id="styles"><option>New York</option><option>Neapolitan</option><option>Detroit</option><option>Sicilian</option><option>Roman</option><option>Grandma</option><option>Focaccia</option></datalist>
+  </section>
+
+  <section class="card">
+    <h2>Batch</h2>
+    <div class="seg" id="scaleBy">
+      <label><input type="radio" name="scaleBy" value="balls" data-k="scaleBy"><span>Dough balls</span></label>
+      <label><input type="radio" name="scaleBy" value="flour" data-k="scaleBy"><span>Total flour</span></label>
+    </div>
+    <div class="grid2" id="ballsFields">
+      <label>Balls <input data-k="balls" data-n type="number" inputmode="decimal" step="1" min="0"></label>
+      <label>Ball weight (g) <input data-k="ballWeight" data-n type="number" inputmode="decimal" step="1" min="0"></label>
+    </div>
+    <div id="flourField" hidden>
+      <label>Total flour (g) <input data-k="flour" data-n type="number" inputmode="decimal" step="0.01" min="0"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Formula <small>baker's % of total flour</small></h2>
+    <div class="hydro">
+      <div class="row between"><b>Water / hydration</b>
+        <span><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
+      <input type="range" id="hydroRange" min="55" max="90" step="0.5">
+      <div class="hint" id="hydroHint"></div>
+    </div>
+    <div class="ing" data-ing="salt"><label class="sw"><input type="checkbox" data-k="salt.on"><i></i>Salt</label><span><input class="pct" data-k="salt.pct" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
+    <div class="ing" data-ing="oil"><label class="sw"><input type="checkbox" data-k="oil.on"><i></i>Oil</label><span><input class="pct" data-k="oil.pct" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
+    <div class="ing" data-ing="sugar"><label class="sw"><input type="checkbox" data-k="sugar.on"><i></i>Sugar</label><span><input class="pct" data-k="sugar.pct" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
+    <div class="ing"><b>Yeast <small>total, IDY</small></b><span><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0"> %</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Pre-ferment</h2>
+    <div class="seg">
+      <label><input type="radio" name="pftype" value="none" data-k="pf.type"><span>None</span></label>
+      <label><input type="radio" name="pftype" value="poolish" data-k="pf.type"><span>Poolish</span></label>
+      <label><input type="radio" name="pftype" value="sourdough" data-k="pf.type"><span>Sourdough</span></label>
+    </div>
+    <div id="pfFields" class="grid2">
+      <label>Flour in pre-ferment <small>% of total flour</small><input data-k="pf.pct" data-n type="number" inputmode="decimal" step="0.5" min="0"></label>
+      <label>Pre-ferment hydration <small>%</small><input data-k="pf.hyd" data-n type="number" inputmode="decimal" step="1" min="0"></label>
+      <label id="pfYeastField">Yeast in poolish <small>% of its flour</small><input data-k="pf.yeast" data-n type="number" inputmode="decimal" step="0.01" min="0"></label>
+    </div>
+  </section>
+
+  <section class="card result">
+    <h2>Weights</h2>
+    <div id="warnings"></div>
+    <div id="weights"></div>
+    <div class="hint" id="weightsHint"></div>
+  </section>
+
+  <section class="card">
+    <h2>Fermentation</h2>
+    <div class="row between"><b>Cold ferment</b><span id="coldLabel" class="big"></span></div>
+    <input type="range" data-k="ferment.coldDays" data-n min="0.5" max="5" step="0.5">
+    <div class="grid3">
+      <label>Room °C<input data-k="ferment.room" data-n type="number" inputmode="decimal" step="0.5"></label>
+      <label>Fridge °C<input data-k="ferment.fridge" data-n type="number" inputmode="decimal" step="0.5"></label>
+      <label>Speed ×<input data-k="ferment.speed" data-n type="number" inputmode="decimal" step="0.05" min="0.1"></label>
+    </div>
+    <div class="stat"><span>Counter bulk with this yeast</span><b id="bulkOut">–</b></div>
+    <div class="hint" id="bulkHint"></div>
+    <div class="suggest">
+      <label>Target counter bulk (h)<input data-k="ferment.targetBulk" data-n type="number" inputmode="decimal" step="0.5" min="0"></label>
+      <button id="suggestBtn" class="small">Suggest yeast</button>
+    </div>
+    <div class="hint">Estimates only. If your dough runs faster or slower than shown, adjust <i>Speed</i> (1.2 = 20% faster) and it will remember per recipe.</div>
+  </section>
+
+  <section class="card">
+    <h2>Water temperature</h2>
+    <div class="grid3">
+      <label>Target dough °C<input data-k="temp.ddt" data-n type="number" inputmode="decimal" step="0.5"></label>
+      <label>Flour °C<input data-k="temp.flour" data-n type="number" inputmode="decimal" step="0.5"></label>
+      <label id="pfTempField">Pre-ferment °C<input data-k="temp.pf" data-n type="number" inputmode="decimal" step="0.5"></label>
+      <label>Friction °C<input data-k="temp.friction" data-n type="number" inputmode="decimal" step="0.5"></label>
+    </div>
+    <div class="stat"><span>Use water at</span><b id="waterTemp">–</b></div>
+    <div class="hint" id="waterHint"></div>
+  </section>
+
+  <section class="card">
+    <h2>Notes &amp; photos</h2>
+    <textarea data-k="notes" rows="5" placeholder="How did it handle? Bake temp, bake time, what to change next time…"></textarea>
+    <div id="photos" class="photos"></div>
+    <label class="filebtn">📷 Add photo<input type="file" id="photoInput" accept="image/*" multiple hidden></label>
+  </section>
+  <div class="savebar"><button id="saveBtn" class="primary">Save recipe</button><span id="saveMsg"></span></div>
+</main>
+
+<main id="tab-recipes" hidden>
+  <div class="row"><input id="search" type="search" placeholder="Search recipes…"></div>
+  <div id="recipeList"></div>
+  <section class="card">
+    <h2>Backup</h2>
+    <div class="hint">Recipes live only in this browser. Export a backup now and then.</div>
+    <div class="row"><button class="small" id="exportBtn">Export</button><label class="small filebtn">Import<input type="file" id="importInput" accept="application/json" hidden></label></div>
+  </section>
+</main>
+
+<div id="lightbox" hidden></div>
+<script src="calc.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
