@@ -58,3 +58,4 @@ tr.tot td{font-weight:700}
 .rcard .acts{display:flex;flex-direction:column;gap:.3rem}
 #lightbox{position:fixed;inset:0;background:#000d;z-index:20;display:grid;place-items:center}#lightbox img{max-width:96vw;max-height:92vh}
 [hidden]{display:none!important}
+.ing.pfrow{border-top:1px dashed var(--line);color:var(--mute)}.ing.pfrow .g{font-size:1rem}
