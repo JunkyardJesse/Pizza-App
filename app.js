@@ -53,6 +53,7 @@
     if (el.type === 'radio' && !el.checked) return;
     if ('n' in el.dataset) v = el.value === '' ? '' : +el.value;
     setPath(r, el.dataset.k, v);
+    $$(`[data-k="${el.dataset.k}"]`).forEach(o => { if (o !== el && o.type !== 'radio' && o.type !== 'checkbox') o.value = el.value; });
     update();
   });
 
@@ -63,8 +64,6 @@
     const c = C.compute(r), fe = r.ferment;
     const pfName = r.pf.type === 'sourdough' ? 'Sourdough starter' : 'Poolish';
 
-    $('#ballsFields').hidden = r.scaleBy !== 'balls';
-    $('#flourField').hidden = r.scaleBy !== 'flour';
     $('#pfFields').hidden = !c.hasPf;
     $('#pfYeastField').hidden = r.pf.type !== 'poolish';
     $('#pfTempField').hidden = !c.hasPf;
@@ -83,8 +82,6 @@
       $('#pfSub').textContent = `${C.fmt(c.pf.flour)} g flour + ${C.fmt(c.pf.water)} g water` + (c.pf.yeast > 0 ? ` + ${C.fmt(c.pf.yeast)} g yeast` : '') + ` (${pctFmt(+r.pf.pct)}% of flour, ${pctFmt(+r.pf.hyd)}% hydration)`;
     }
     $('#warnings').innerHTML = c.warnings.map(w => `<p class="warn">⚠ ${w}</p>`).join('');
-    $('#weightsHint').textContent = r.scaleBy === 'flour' && c.ballWeight && r.balls
-      ? `${C.fmt(c.ballWeight, 1)} g per ball at ${r.balls} balls` : '';
 
     let h = '';
     if (c.hasPf) {
@@ -155,7 +152,7 @@
   function persistIfSaved() { if (isSaved()) save(true); }
   function save(quiet) {
     if (!r.id) r.id = uid();
-    if (!r.name.trim()) r.name = `${r.style || 'Pizza'} ${C.fmt(r.hydration, 1).replace(/\.0$/, '')}% – ${new Date().toLocaleDateString()}`;
+    if (!r.name.trim()) r.name = `Dough ${C.fmt(r.hydration, 1).replace(/\.0$/, '')}% – ${new Date().toLocaleDateString()}`;
     r.updated = Date.now(); r.created ||= r.updated;
     const i = recipes.findIndex(x => x.id === r.id);
     if (i >= 0) recipes[i] = clone(r); else recipes.push(clone(r));
@@ -175,7 +172,7 @@
     const q = $('#search').value.toLowerCase();
     $('#recipeCount').textContent = recipes.length ? `(${recipes.length})` : '';
     const list = [...recipes].sort((a, b) => b.updated - a.updated)
-      .filter(x => !q || `${x.name} ${x.style} ${x.notes}`.toLowerCase().includes(q));
+      .filter(x => !q || `${x.name} ${x.notes}`.toLowerCase().includes(q));
     const box = $('#recipeList'); box.innerHTML = list.length ? '' : '<p class="hint">No recipes yet. Build one on the Calculator tab and press Save.</p>';
     for (const rec of list) {
       const c = C.compute(merge(C.defaults(), rec)), pid = rec.photos?.[0];
@@ -183,7 +180,7 @@
       if (pid) { const b = await getPhoto(pid); if (b) thumb = `<img src="${urls[pid] ||= URL.createObjectURL(b)}" alt="">`; }
       const d = document.createElement('div'); d.className = 'rcard';
       const pf = rec.pf.type === 'none' ? '' : ` · ${rec.pf.type} ${rec.pf.pct}%`;
-      d.innerHTML = `${thumb}<div class="meta"><b></b><small>${rec.style || ''} · ${rec.hydration}% hydration${pf} · yeast ${rec.yeast}% · ${rec.ferment.coldDays}d cold<br>${new Date(rec.updated).toLocaleDateString()}</small><div class="note"></div></div>
+      d.innerHTML = `${thumb}<div class="meta"><b></b><small>${rec.hydration}% hydration${pf} · yeast ${rec.yeast}% · ${rec.ferment.coldDays}d cold<br>${new Date(rec.updated).toLocaleDateString()}</small><div class="note"></div></div>
         <div class="acts"><button class="small" data-a="copy">Copy</button><button class="small" data-a="del">Delete</button></div>`;
       $('b', d).textContent = rec.name; $('.note', d).textContent = rec.notes || '';
       d.onclick = (e) => {
