@@ -48,7 +48,6 @@
 
   document.addEventListener('input', e => {
     const el = e.target;
-    if (el.id === 'hydroRange') { r.hydration = +el.value; $('[data-k=hydration]').value = r.hydration; return update(); }
     if (!el.dataset.k) return;
     let v = el.type === 'checkbox' ? el.checked : el.value;
     if (el.type === 'radio' && !el.checked) return;
@@ -70,7 +69,6 @@
     $('#pfYeastField').hidden = r.pf.type !== 'poolish';
     $('#pfTempField').hidden = !c.hasPf;
     ['salt', 'oil', 'sugar'].forEach(k => $(`[data-ing=${k}]`).classList.toggle('off', !r[k].on));
-    $('#hydroRange').value = r.hydration;
 
     const F = c.final, T = c.totals;
     const set = (id, g, on = true) => { $('#g-' + id).textContent = on ? C.fmt(g) : '–'; };
@@ -95,17 +93,9 @@
       const sec = (t) => `<tr class="sub"><td colspan="3">${t}</td></tr>`;
       h = '<table>' + sec(pfName) + row('Flour', c.pf.flour, pctOfTotal(c.pf.flour)) + row('Water', c.pf.water, pctOfTotal(c.pf.water));
       if (c.pf.yeast > 0) h += row('Yeast', c.pf.yeast, pctOfTotal(c.pf.yeast));
-      h += sec('Add to final mix') + row(pfName, c.pf.total) + row('Flour', F.flour, pctOfTotal(F.flour)) + row('Water', F.water, pctOfTotal(F.water));
-      if (r.salt.on) h += row('Salt', F.salt, c.pct.salt);
-      if (r.oil.on) h += row('Oil', F.oil, c.pct.oil);
-      if (r.sugar.on) h += row('Sugar', F.sugar, c.pct.sugar);
-      h += row('Yeast', F.yeast, pctOfTotal(F.yeast)) + '</table>';
+      h += '</table>';
     }
     $('#pfBreakdown').innerHTML = h;
-
-    $('#hydroHint').textContent = c.hasPf && c.finalHydration !== null
-      ? `Total ${pctFmt(r.hydration, 1)}% · ${pfName.toLowerCase()} carries ${C.fmt(c.pf.water, 1)} g of water · final mix alone ${C.fmt(c.finalHydration, 1)}% of the added flour`
-      : `${C.fmt(T.water, 1)} g water for ${C.fmt(T.flour, 1)} g flour`;
 
     $('#coldLabel').textContent = `${fe.coldDays} day${+fe.coldDays === 1 ? '' : 's'} at ${fe.fridge}°C`;
     const b = C.bulkHours(r);
@@ -170,7 +160,7 @@
     const i = recipes.findIndex(x => x.id === r.id);
     if (i >= 0) recipes[i] = clone(r); else recipes.push(clone(r));
     lsSet(LS_RECIPES, recipes); fillInputs(); update(); renderRecipes();
-    if (!quiet) { const m = $('#saveMsg'); m.textContent = 'Saved ✓'; setTimeout(() => m.textContent = '', 2000); }
+    if (!quiet) { const b = $('#saveBtn'); b.textContent = 'Saved ✓'; setTimeout(() => b.textContent = 'Save', 1500); }
   }
   $('#saveBtn').onclick = () => save();
 
@@ -229,7 +219,6 @@
   function showTab(t) {
     $$('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
     $('#tab-calc').hidden = t !== 'calc'; $('#tab-recipes').hidden = t !== 'recipes';
-    $('.savebar').hidden = t !== 'calc';
     if (t === 'recipes') renderRecipes();
   }
   $$('nav button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
