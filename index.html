@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#b4361f">
+<meta name="theme-color" content="#f7f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171210" media="(prefers-color-scheme: dark)">
 <title>Pizza Dough</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -12,9 +13,8 @@
 </head>
 <body>
 <header>
-  <h1>🍕 Pizza Dough</h1>
   <nav>
-    <button data-tab="calc" class="active">Calculator</button>
+    <button data-tab="calc" class="active">Dough Calculator</button>
     <button data-tab="recipes">Recipes <span id="recipeCount"></span></button>
   </nav>
 </header>
@@ -44,16 +44,18 @@
 
   <section class="card">
     <h2>Formula <small>baker's % of total flour</small></h2>
-    <div class="hydro">
-      <div class="row between"><b>Water / hydration</b>
-        <span><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
-      <input type="range" id="hydroRange" min="55" max="90" step="0.5">
-      <div class="hint" id="hydroHint"></div>
-    </div>
-    <div class="ing" data-ing="salt"><label class="sw"><input type="checkbox" data-k="salt.on"><i></i>Salt</label><span><input class="pct" data-k="salt.pct" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
-    <div class="ing" data-ing="oil"><label class="sw"><input type="checkbox" data-k="oil.on"><i></i>Oil</label><span><input class="pct" data-k="oil.pct" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
-    <div class="ing" data-ing="sugar"><label class="sw"><input type="checkbox" data-k="sugar.on"><i></i>Sugar</label><span><input class="pct" data-k="sugar.pct" data-n type="number" inputmode="decimal" step="0.1" min="0"> %</span></div>
-    <div class="ing"><b>Yeast <small>total, IDY</small></b><span><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0"> %</span></div>
+    <div class="ing head"><span></span><span class="pc">% flour</span><span class="g">grams</span></div>
+    <div class="ing"><b>Flour</b><span class="fixed">100</span><span class="pc">%</span><b class="g" id="g-flour"></b></div>
+    <div class="ing"><b>Water</b><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Hydration %"><span class="pc">%</span><b class="g" id="g-water"></b></div>
+    <input type="range" id="hydroRange" min="55" max="90" step="0.5" aria-label="Hydration">
+    <div class="hint" id="hydroHint"></div>
+    <div class="ing" data-ing="salt"><label class="sw"><input type="checkbox" data-k="salt.on"><i></i>Salt</label><input class="pct" data-k="salt.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Salt %"><span class="pc">%</span><b class="g" id="g-salt"></b></div>
+    <div class="ing" data-ing="oil"><label class="sw"><input type="checkbox" data-k="oil.on"><i></i>Oil</label><input class="pct" data-k="oil.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Oil %"><span class="pc">%</span><b class="g" id="g-oil"></b></div>
+    <div class="ing" data-ing="sugar"><label class="sw"><input type="checkbox" data-k="sugar.on"><i></i>Sugar</label><input class="pct" data-k="sugar.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Sugar %"><span class="pc">%</span><b class="g" id="g-sugar"></b></div>
+    <div class="ing"><b>Yeast <small>total, IDY</small></b><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0" aria-label="Yeast %"><span class="pc">%</span><b class="g" id="g-yeast"></b></div>
+    <div class="ing total"><b>Dough</b><span></span><span></span><b class="g" id="g-dough"></b></div>
+    <div class="hint" id="weightsHint"></div>
+    <div id="warnings"></div>
   </section>
 
   <section class="card">
@@ -68,13 +70,7 @@
       <label>Pre-ferment hydration <small>%</small><input data-k="pf.hyd" data-n type="number" inputmode="decimal" step="1" min="0"></label>
       <label id="pfYeastField">Yeast in poolish <small>% of its flour</small><input data-k="pf.yeast" data-n type="number" inputmode="decimal" step="0.01" min="0"></label>
     </div>
-  </section>
-
-  <section class="card result">
-    <h2>Weights</h2>
-    <div id="warnings"></div>
-    <div id="weights"></div>
-    <div class="hint" id="weightsHint"></div>
+    <div id="pfBreakdown"></div>
   </section>
 
   <section class="card">

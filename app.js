@@ -59,8 +59,6 @@
 
   /* ---------- outputs ---------- */
   const pctFmt = (n, dp = 2) => (+n.toFixed(dp)).toString();
-  const row = (label, pct, g, cls = '') => `<tr class="${cls}"><td>${label}</td><td class="p">${pct === null ? '' : pctFmt(pct, label.startsWith('Yeast') ? 3 : 2) + '%'}</td><td class="g">${C.fmt(g)}</td></tr>`;
-  const sec = (t) => `<tr class="sub"><td colspan="3">${t}</td></tr>`;
 
   function update() {
     const c = C.compute(r), fe = r.ferment;
@@ -74,35 +72,29 @@
     ['salt', 'oil', 'sugar'].forEach(k => $(`[data-ing=${k}]`).classList.toggle('off', !r[k].on));
     $('#hydroRange').value = r.hydration;
 
-    let h = '<table><thead><tr><th></th><th>% flour</th><th>grams</th></tr></thead>';
-    const P = c.pct, F = c.final, T = c.totals;
-    const pctOfTotal = (g) => (T.flour ? g / T.flour * 100 : 0);
-    if (c.hasPf) {
-      h += sec(pfName);
-      h += row('Flour', pctOfTotal(c.pf.flour), c.pf.flour) + row('Water', pctOfTotal(c.pf.water), c.pf.water);
-      if (c.pf.yeast > 0) h += row('Yeast', pctOfTotal(c.pf.yeast), c.pf.yeast);
-      h += sec('Final mix');
-      h += row(pfName, null, c.pf.total);
-      h += row('Flour', pctOfTotal(F.flour), F.flour) + row('Water', pctOfTotal(F.water), F.water);
-    } else {
-      h += sec('Mix');
-      h += row('Flour', 100, F.flour) + row('Water', P.water, F.water);
-    }
-    if (r.salt.on) h += row('Salt', P.salt, F.salt);
-    if (r.oil.on) h += row('Oil', P.oil, F.oil);
-    if (r.sugar.on) h += row('Sugar', P.sugar, F.sugar);
-    h += row('Yeast', pctOfTotal(F.yeast), F.yeast);
-    h += sec('Whole formula');
-    h += row('Flour', 100, T.flour) + row('Water', P.water, T.water);
-    if (r.salt.on) h += row('Salt', P.salt, T.salt);
-    if (r.oil.on) h += row('Oil', P.oil, T.oil);
-    if (r.sugar.on) h += row('Sugar', P.sugar, T.sugar);
-    h += row('Yeast', P.yeast, T.yeast);
-    h += row('Dough', null, T.dough, 'tot') + '</table>';
-    $('#weights').innerHTML = h;
+    const F = c.final, T = c.totals;
+    const set = (id, g, on = true) => { $('#g-' + id).textContent = on ? C.fmt(g) : '–'; };
+    set('flour', T.flour); set('water', T.water);
+    set('salt', T.salt, r.salt.on); set('oil', T.oil, r.oil.on); set('sugar', T.sugar, r.sugar.on);
+    set('yeast', T.yeast); set('dough', T.dough);
     $('#warnings').innerHTML = c.warnings.map(w => `<p class="warn">⚠ ${w}</p>`).join('');
     $('#weightsHint').textContent = r.scaleBy === 'flour' && c.ballWeight && r.balls
       ? `${C.fmt(c.ballWeight, 1)} g per ball at ${r.balls} balls` : '';
+
+    let h = '';
+    if (c.hasPf) {
+      const pctOfTotal = (g) => (T.flour ? g / T.flour * 100 : 0);
+      const row = (label, g, pct) => `<tr><td>${label}</td><td class="p">${pct === undefined ? '' : pctFmt(pct, label === 'Yeast' ? 3 : 2) + '%'}</td><td class="g">${C.fmt(g)}</td></tr>`;
+      const sec = (t) => `<tr class="sub"><td colspan="3">${t}</td></tr>`;
+      h = '<table>' + sec(pfName) + row('Flour', c.pf.flour, pctOfTotal(c.pf.flour)) + row('Water', c.pf.water, pctOfTotal(c.pf.water));
+      if (c.pf.yeast > 0) h += row('Yeast', c.pf.yeast, pctOfTotal(c.pf.yeast));
+      h += sec('Add to final mix') + row(pfName, c.pf.total) + row('Flour', F.flour, pctOfTotal(F.flour)) + row('Water', F.water, pctOfTotal(F.water));
+      if (r.salt.on) h += row('Salt', F.salt, c.pct.salt);
+      if (r.oil.on) h += row('Oil', F.oil, c.pct.oil);
+      if (r.sugar.on) h += row('Sugar', F.sugar, c.pct.sugar);
+      h += row('Yeast', F.yeast, pctOfTotal(F.yeast)) + '</table>';
+    }
+    $('#pfBreakdown').innerHTML = h;
 
     $('#hydroHint').textContent = c.hasPf && c.finalHydration !== null
       ? `Total ${pctFmt(r.hydration, 1)}% · ${pfName.toLowerCase()} carries ${C.fmt(c.pf.water, 1)} g of water · final mix alone ${C.fmt(c.finalHydration, 1)}% of the added flour`
