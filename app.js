@@ -74,13 +74,8 @@
     set('flour', T.flour); set('water', T.water);
     set('salt', T.salt, r.salt.on); set('oil', T.oil, r.oil.on); set('sugar', T.sugar, r.sugar.on);
     set('yeast', T.yeast); set('dough', T.dough);
-    $('#pfRow').hidden = $('#pfSub').hidden = !c.hasPf;
-    if (c.hasPf) {
-      $('#pfLabel').textContent = `incl. ${pfName.toLowerCase()}`;
-      $('#pfPct').textContent = pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0);
-      $('#g-pf').textContent = C.fmt(c.pf.total);
-      $('#pfSub').textContent = `${C.fmt(c.pf.flour)} g flour + ${C.fmt(c.pf.water)} g water` + (c.pf.yeast > 0 ? ` + ${C.fmt(c.pf.yeast)} g yeast` : '') + ` (${pctFmt(+r.pf.pct)}% of flour, ${pctFmt(+r.pf.hyd)}% hydration)`;
-    }
+    $('#pfSumG').textContent = c.hasPf ? `${C.fmt(c.pf.total)} g` : 'None';
+    $('#pfSumSub').textContent = c.hasPf ? `${pfName} · ${pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0)}%` : '';
     $('#warnings').innerHTML = c.warnings.map(w => `<p class="warn">⚠ ${w}</p>`).join('');
 
     let h = '';
@@ -95,6 +90,7 @@
     $('#pfBreakdown').innerHTML = h;
 
     $('#coldLabel').textContent = `${fe.coldDays} day${+fe.coldDays === 1 ? '' : 's'} at ${fe.fridge}°C`;
+    $('#coldSum').textContent = $('#coldLabel').textContent + ' cold';
     const b = C.bulkHours(r);
     $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'none needed' : '≈ ' + C.fmtHours(b.hours));
     $('#bulkHint').className = 'hint' + (b.over || b.longHours ? ' warn' : '');

@@ -61,7 +61,9 @@ tr.tot td{font-weight:700}
 details.sub{border-top:1px solid var(--line);padding:.2rem 0}
 details.sub summary{list-style:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:.45rem 0;color:var(--mute);font-size:.95rem}
 details.sub summary::-webkit-details-marker{display:none}
-details.sub summary span:before{content:"›";display:inline-block;margin-right:.5rem;transition:transform .15s}
-details.sub[open] summary span:before{transform:rotate(90deg)}
+details.sub summary>span:first-child:before{content:"›";display:inline-block;margin-right:.5rem;transition:transform .15s}
+details.sub[open] summary>span:first-child:before{transform:rotate(90deg)}
 details.sub summary b{color:var(--ink);font-size:1.1rem}
 details.sub[open]{padding-bottom:.4rem}
+.sv{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}.sv small{color:var(--mute);font-size:.75rem}
+details.sub .stat{margin-top:.5rem}
