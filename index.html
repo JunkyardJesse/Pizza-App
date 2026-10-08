@@ -21,7 +21,7 @@
 
 <main id="tab-calc">
   <section class="card">
-    <div class="row between"><h2>Recipe</h2><button class="small ghost" id="newBtn">New</button></div>
+    <div class="row between"><h2>Recipe</h2><span class="row"><button class="small ghost" id="newBtn">New</button><button class="small primary" id="saveBtn">Save</button></span></div>
     <label>Name <input data-k="name" type="text" placeholder="e.g. NY 68% poolish"></label>
     <label>Style <input data-k="style" type="text" list="styles"></label>
     <datalist id="styles"><option>New York</option><option>Neapolitan</option><option>Detroit</option><option>Sicilian</option><option>Roman</option><option>Grandma</option><option>Focaccia</option></datalist>
@@ -47,8 +47,6 @@
     <div class="ing head"><span></span><span class="pc">% flour</span><span class="g">grams</span></div>
     <div class="ing"><b>Flour</b><span class="fixed">100</span><span class="pc">%</span><b class="g" id="g-flour"></b></div>
     <div class="ing"><b>Water</b><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Hydration %"><span class="pc">%</span><b class="g" id="g-water"></b></div>
-    <input type="range" id="hydroRange" min="55" max="90" step="0.5" aria-label="Hydration">
-    <div class="hint" id="hydroHint"></div>
     <div class="ing" data-ing="salt"><label class="sw"><input type="checkbox" data-k="salt.on"><i></i>Salt</label><input class="pct" data-k="salt.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Salt %"><span class="pc">%</span><b class="g" id="g-salt"></b></div>
     <div class="ing" data-ing="oil"><label class="sw"><input type="checkbox" data-k="oil.on"><i></i>Oil</label><input class="pct" data-k="oil.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Oil %"><span class="pc">%</span><b class="g" id="g-oil"></b></div>
     <div class="ing" data-ing="sugar"><label class="sw"><input type="checkbox" data-k="sugar.on"><i></i>Sugar</label><input class="pct" data-k="sugar.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Sugar %"><span class="pc">%</span><b class="g" id="g-sugar"></b></div>
@@ -111,7 +109,6 @@
     <div id="photos" class="photos"></div>
     <label class="filebtn">📷 Add photo<input type="file" id="photoInput" accept="image/*" multiple hidden></label>
   </section>
-  <div class="savebar"><button id="saveBtn" class="primary">Save recipe</button><span id="saveMsg"></span></div>
 </main>
 
 <main id="tab-recipes" hidden>
