@@ -91,11 +91,26 @@ jobs:
           if [ -d ios/App/App.xcworkspace ]; then echo "XC=-workspace ios/App/App.xcworkspace" >> "$GITHUB_ENV"
           else echo "XC=-project ios/App/App.xcodeproj" >> "$GITHUB_ENV"; fi
 
-      - name: Compile check (simulator, no signing needed)
+      - name: Build unsigned .ipa (sideload with Sideloadly / AltStore and a free Apple ID)
         if: env.RELEASE != 'true' || env.HAS_APPLE != 'true'
         run: |
-          xcodebuild $XC -scheme App -configuration Debug -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -n 25
+          xcodebuild $XC -scheme App -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" build | tail -n 25
+          APP=$(find "$RUNNER_TEMP/dd/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' | head -1)
+          test -n "$APP"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload" && cp -R "$APP" "$RUNNER_TEMP/ipa/Payload/"
+          NAME=$(node -p "require('./capacitor.config.json').appName.replace(/\s+/g, '-')")
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/$NAME-unsigned.ipa" Payload)
+          ls -la "$GITHUB_WORKSPACE"/*.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: env.RELEASE != 'true' || env.HAS_APPLE != 'true'
+        with:
+          name: ios-unsigned-ipa-${{ github.run_number }}
+          path: "*.ipa"
+          if-no-files-found: error
 
       - name: Archive and upload to TestFlight
         if: env.RELEASE == 'true' && env.HAS_APPLE == 'true'
