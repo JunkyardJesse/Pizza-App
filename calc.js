@@ -10,8 +10,8 @@
 
   function defaults() {
     return {
-      name: '', style: 'New York', notes: '', photos: [],
-      scaleBy: 'balls', balls: 4, ballWeight: 280, flour: 500,
+      name: '', notes: '', photos: [],
+      balls: 4, ballWeight: 280,
       hydration: 68,
       salt: { on: true, pct: 2.5 },
       oil: { on: true, pct: 2 },
@@ -32,9 +32,7 @@
     const yeast = num(r.yeast);
     const sumPct = h + salt + oil + sugar + yeast;
 
-    let F;
-    if (r.scaleBy === 'flour') F = num(r.flour);
-    else F = (num(r.balls) * num(r.ballWeight)) / (1 + sumPct / 100);
+    const F = (num(r.balls) * num(r.ballWeight)) / (1 + sumPct / 100);
     const total = F * (1 + sumPct / 100);
 
     const type = r.pf.type;

@@ -53,7 +53,17 @@
     if (el.type === 'radio' && !el.checked) return;
     if ('n' in el.dataset) v = el.value === '' ? '' : +el.value;
     setPath(r, el.dataset.k, v);
+    $$(`[data-k="${el.dataset.k}"]`).forEach(o => { if (o !== el && o.type !== 'radio' && o.type !== 'checkbox') o.value = el.value; });
     update();
+  });
+
+  /* ---------- expandable rows ---------- */
+  document.addEventListener('click', e => {
+    const head = e.target.closest('.xhead');
+    if (!head || e.target.closest('input')) return;
+    const x = head.parentElement, open = !x.classList.contains('open');
+    x.classList.toggle('open', open);
+    $('.xb', head).setAttribute('aria-expanded', open);
   });
 
   /* ---------- outputs ---------- */
@@ -63,8 +73,6 @@
     const c = C.compute(r), fe = r.ferment;
     const pfName = r.pf.type === 'sourdough' ? 'Sourdough starter' : 'Poolish';
 
-    $('#ballsFields').hidden = r.scaleBy !== 'balls';
-    $('#flourField').hidden = r.scaleBy !== 'flour';
     $('#pfFields').hidden = !c.hasPf;
     $('#pfYeastField').hidden = r.pf.type !== 'poolish';
     $('#pfTempField').hidden = !c.hasPf;
@@ -75,16 +83,10 @@
     set('flour', T.flour); set('water', T.water);
     set('salt', T.salt, r.salt.on); set('oil', T.oil, r.oil.on); set('sugar', T.sugar, r.sugar.on);
     set('yeast', T.yeast); set('dough', T.dough);
-    $('#pfRow').hidden = $('#pfSub').hidden = !c.hasPf;
-    if (c.hasPf) {
-      $('#pfLabel').textContent = `incl. ${pfName.toLowerCase()}`;
-      $('#pfPct').textContent = pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0);
-      $('#g-pf').textContent = C.fmt(c.pf.total);
-      $('#pfSub').textContent = `${C.fmt(c.pf.flour)} g flour + ${C.fmt(c.pf.water)} g water` + (c.pf.yeast > 0 ? ` + ${C.fmt(c.pf.yeast)} g yeast` : '') + ` (${pctFmt(+r.pf.pct)}% of flour, ${pctFmt(+r.pf.hyd)}% hydration)`;
-    }
+    $('#g-pf').textContent = c.hasPf ? C.fmt(c.pf.total) : '–';
+    $('#pfPct').textContent = c.hasPf ? pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0) : '';
+    $('#pfSumSub').textContent = c.hasPf ? pfName : 'none';
     $('#warnings').innerHTML = c.warnings.map(w => `<p class="warn">⚠ ${w}</p>`).join('');
-    $('#weightsHint').textContent = r.scaleBy === 'flour' && c.ballWeight && r.balls
-      ? `${C.fmt(c.ballWeight, 1)} g per ball at ${r.balls} balls` : '';
 
     let h = '';
     if (c.hasPf) {
@@ -99,7 +101,7 @@
 
     $('#coldLabel').textContent = `${fe.coldDays} day${+fe.coldDays === 1 ? '' : 's'} at ${fe.fridge}°C`;
     const b = C.bulkHours(r);
-    $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'none needed' : '≈ ' + C.fmtHours(b.hours));
+    $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'no counter bulk' : '≈ ' + C.fmtHours(b.hours) + ' bulk');
     $('#bulkHint').className = 'hint' + (b.over || b.longHours ? ' warn' : '');
     $('#bulkHint').textContent = b.hours === null ? 'Enter a yeast amount.'
       : b.over ? `At ${fe.room}°C this much yeast already over-ferments in the fridge alone. Use less yeast or a shorter cold ferment.`
@@ -107,7 +109,7 @@
       : `Counter at ${fe.room}°C before balling and going in the fridge, with ${C.fmt(C.effectiveYeast(r), 3)}% effective yeast${r.pf.type === 'sourdough' ? ' (incl. starter)' : ''}.`;
 
     const w = C.waterTemp(r);
-    $('#waterTemp').textContent = `${C.fmt(w.temp, 1)} °C`;
+    $('#waterSub').textContent = `use water at ${C.fmt(w.temp, 1)} °C`;
     $('#waterHint').className = 'hint' + (w.temp < 1 || w.temp > 43 ? ' warn' : '');
     $('#waterHint').textContent = w.temp < 1 ? 'Colder than tap water can give. Use ice, or aim for a warmer dough.'
       : w.temp > 43 ? 'Too hot, it would harm the yeast. Cool the flour/pre-ferment or aim for a lower dough temp.'
@@ -155,7 +157,7 @@
   function persistIfSaved() { if (isSaved()) save(true); }
   function save(quiet) {
     if (!r.id) r.id = uid();
-    if (!r.name.trim()) r.name = `${r.style || 'Pizza'} ${C.fmt(r.hydration, 1).replace(/\.0$/, '')}% – ${new Date().toLocaleDateString()}`;
+    if (!r.name.trim()) r.name = `Dough ${C.fmt(r.hydration, 1).replace(/\.0$/, '')}% – ${new Date().toLocaleDateString()}`;
     r.updated = Date.now(); r.created ||= r.updated;
     const i = recipes.findIndex(x => x.id === r.id);
     if (i >= 0) recipes[i] = clone(r); else recipes.push(clone(r));
@@ -175,7 +177,7 @@
     const q = $('#search').value.toLowerCase();
     $('#recipeCount').textContent = recipes.length ? `(${recipes.length})` : '';
     const list = [...recipes].sort((a, b) => b.updated - a.updated)
-      .filter(x => !q || `${x.name} ${x.style} ${x.notes}`.toLowerCase().includes(q));
+      .filter(x => !q || `${x.name} ${x.notes}`.toLowerCase().includes(q));
     const box = $('#recipeList'); box.innerHTML = list.length ? '' : '<p class="hint">No recipes yet. Build one on the Calculator tab and press Save.</p>';
     for (const rec of list) {
       const c = C.compute(merge(C.defaults(), rec)), pid = rec.photos?.[0];
@@ -183,7 +185,7 @@
       if (pid) { const b = await getPhoto(pid); if (b) thumb = `<img src="${urls[pid] ||= URL.createObjectURL(b)}" alt="">`; }
       const d = document.createElement('div'); d.className = 'rcard';
       const pf = rec.pf.type === 'none' ? '' : ` · ${rec.pf.type} ${rec.pf.pct}%`;
-      d.innerHTML = `${thumb}<div class="meta"><b></b><small>${rec.style || ''} · ${rec.hydration}% hydration${pf} · yeast ${rec.yeast}% · ${rec.ferment.coldDays}d cold<br>${new Date(rec.updated).toLocaleDateString()}</small><div class="note"></div></div>
+      d.innerHTML = `${thumb}<div class="meta"><b></b><small>${rec.hydration}% hydration${pf} · yeast ${rec.yeast}% · ${rec.ferment.coldDays}d cold<br>${new Date(rec.updated).toLocaleDateString()}</small><div class="note"></div></div>
         <div class="acts"><button class="small" data-a="copy">Copy</button><button class="small" data-a="del">Delete</button></div>`;
       $('b', d).textContent = rec.name; $('.note', d).textContent = rec.notes || '';
       d.onclick = (e) => {
