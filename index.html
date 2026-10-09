@@ -34,9 +34,10 @@
     <div class="ing head"><span></span><span class="pc">% flour</span><span class="g">grams</span></div>
     <div class="ing"><b>Flour</b><span class="fixed">100</span><span class="pc">%</span><b class="g" id="g-flour"></b></div>
     <div class="x" id="x-water">
-      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Water</b><small id="waterSub"></small></button><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Hydration %"><span class="pc">%</span><b class="g" id="g-water"></b></div>
+      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Water</b></button><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Hydration %"><span class="pc">%</span><b class="g" id="g-water"></b></div>
       <div class="xpanel">
-      <div class="grid3">
+      <div class="stat"><span>Use water at</span><b id="waterTemp">–</b></div>
+      <div class="grid2">
         <label>Target dough °C<input data-k="temp.ddt" data-n type="number" inputmode="decimal" step="0.5"></label>
         <label>Flour °C<input data-k="temp.flour" data-n type="number" inputmode="decimal" step="0.5"></label>
         <label id="pfTempField">Pre-ferment °C<input data-k="temp.pf" data-n type="number" inputmode="decimal" step="0.5"></label>
@@ -50,8 +51,9 @@
     <div class="ing" data-ing="oil"><label class="sw"><input type="checkbox" data-k="oil.on"><i></i>Oil</label><input class="pct" data-k="oil.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Oil %"><span class="pc">%</span><b class="g" id="g-oil"></b></div>
     <div class="ing" data-ing="sugar"><label class="sw"><input type="checkbox" data-k="sugar.on"><i></i>Sugar</label><input class="pct" data-k="sugar.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Sugar %"><span class="pc">%</span><b class="g" id="g-sugar"></b></div>
     <div class="x" id="x-yeast">
-      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Yeast</b><small id="bulkOut"></small></button><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0" aria-label="Yeast %"><span class="pc">%</span><b class="g" id="g-yeast"></b></div>
+      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Yeast</b></button><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0" aria-label="Yeast %"><span class="pc">%</span><b class="g" id="g-yeast"></b></div>
       <div class="xpanel">
+      <div class="stat"><span>Counter bulk</span><b id="bulkOut">–</b></div>
       <div class="row between"><b>Cold ferment</b><span id="coldLabel" class="big"></span></div>
       <input type="range" data-k="ferment.coldDays" data-n min="0.5" max="5" step="0.5">
       <div class="grid3">
@@ -68,7 +70,7 @@
       </div>
     </div>
     <div class="x" id="x-pf">
-      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Pre-ferment</b><small id="pfSumSub"></small></button><span class="fixed" id="pfPct"></span><span class="pc">%</span><b class="g" id="g-pf"></b></div>
+      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Pre-ferment</b></button><span class="fixed" id="pfPct"></span><span class="pc">%</span><b class="g" id="g-pf"></b></div>
       <div class="xpanel">
       <div class="seg">
         <label><input type="radio" name="pftype" value="none" data-k="pf.type"><span>None</span></label>

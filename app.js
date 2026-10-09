@@ -79,19 +79,18 @@
     ['salt', 'oil', 'sugar'].forEach(k => $(`[data-ing=${k}]`).classList.toggle('off', !r[k].on));
 
     const F = c.final, T = c.totals;
-    const set = (id, g, on = true) => { $('#g-' + id).textContent = on ? C.fmt(g) : '–'; };
-    set('flour', T.flour); set('water', T.water);
-    set('salt', T.salt, r.salt.on); set('oil', T.oil, r.oil.on); set('sugar', T.sugar, r.sugar.on);
-    set('yeast', T.yeast); set('dough', T.dough);
-    $('#g-pf').textContent = c.hasPf ? C.fmt(c.pf.total) : '–';
+    const set = (id, g, dp, on = true) => { $('#g-' + id).textContent = on ? C.fmt(g, dp) : '–'; };
+    set('flour', T.flour, 0); set('water', T.water, 0);
+    set('salt', T.salt, 1, r.salt.on); set('oil', T.oil, 1, r.oil.on); set('sugar', T.sugar, 1, r.sugar.on);
+    set('yeast', T.yeast, 2); set('dough', T.dough, 0);
+    $('#g-pf').textContent = c.hasPf ? C.fmt(c.pf.total, 0) : '–';
     $('#pfPct').textContent = c.hasPf ? pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0) : '';
-    $('#pfSumSub').textContent = c.hasPf ? pfName : 'none';
     $('#warnings').innerHTML = c.warnings.map(w => `<p class="warn">⚠ ${w}</p>`).join('');
 
     let h = '';
     if (c.hasPf) {
       const pctOfTotal = (g) => (T.flour ? g / T.flour * 100 : 0);
-      const row = (label, g, pct) => `<tr><td>${label}</td><td class="p">${pct === undefined ? '' : pctFmt(pct, label === 'Yeast' ? 3 : 2) + '%'}</td><td class="g">${C.fmt(g)}</td></tr>`;
+      const row = (label, g, pct) => `<tr><td>${label}</td><td class="p">${pct === undefined ? '' : pctFmt(pct, label === 'Yeast' ? 3 : 2) + '%'}</td><td class="g">${C.fmt(g, label === 'Yeast' ? 2 : 0)}</td></tr>`;
       const sec = (t) => `<tr class="sub"><td colspan="3">${t}</td></tr>`;
       h = '<table>' + sec(pfName) + row('Flour', c.pf.flour, pctOfTotal(c.pf.flour)) + row('Water', c.pf.water, pctOfTotal(c.pf.water));
       if (c.pf.yeast > 0) h += row('Yeast', c.pf.yeast, pctOfTotal(c.pf.yeast));
@@ -101,7 +100,7 @@
 
     $('#coldLabel').textContent = `${fe.coldDays} day${+fe.coldDays === 1 ? '' : 's'} at ${fe.fridge}°C`;
     const b = C.bulkHours(r);
-    $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'no counter bulk' : '≈ ' + C.fmtHours(b.hours) + ' bulk');
+    $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'no counter bulk' : '≈ ' + C.fmtHours(b.hours) + '');
     $('#bulkHint').className = 'hint' + (b.over || b.longHours ? ' warn' : '');
     $('#bulkHint').textContent = b.hours === null ? 'Enter a yeast amount.'
       : b.over ? `At ${fe.room}°C this much yeast already over-ferments in the fridge alone. Use less yeast or a shorter cold ferment.`
@@ -109,7 +108,7 @@
       : `Counter at ${fe.room}°C before balling and going in the fridge, with ${C.fmt(C.effectiveYeast(r), 3)}% effective yeast${r.pf.type === 'sourdough' ? ' (incl. starter)' : ''}.`;
 
     const w = C.waterTemp(r);
-    $('#waterSub').textContent = `use water at ${C.fmt(w.temp, 1)} °C`;
+    $('#waterTemp').textContent = `${C.fmt(w.temp, 1)} °C`;
     $('#waterHint').className = 'hint' + (w.temp < 1 || w.temp > 43 ? ' warn' : '');
     $('#waterHint').textContent = w.temp < 1 ? 'Colder than tap water can give. Use ice, or aim for a warmer dough.'
       : w.temp > 43 ? 'Too hot, it would harm the yeast. Cool the flour/pre-ferment or aim for a lower dough temp.'
