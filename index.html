@@ -33,9 +33,9 @@
     <h2>Formula <small>baker's % of total flour</small></h2>
     <div class="ing head"><span></span><span class="pc">% flour</span><span class="g">grams</span></div>
     <div class="ing"><b>Flour</b><span class="fixed">100</span><span class="pc">%</span><b class="g" id="g-flour"></b></div>
-    <div class="ing"><b>Water</b><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Hydration %"><span class="pc">%</span><b class="g" id="g-water"></b></div>
-    <details class="sub">
-      <summary><span>Water temperature</span><b id="waterTemp">–</b></summary>
+    <div class="x" id="x-water">
+      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Water</b><small id="waterSub"></small></button><input class="pct" data-k="hydration" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Hydration %"><span class="pc">%</span><b class="g" id="g-water"></b></div>
+      <div class="xpanel">
       <div class="grid3">
         <label>Target dough °C<input data-k="temp.ddt" data-n type="number" inputmode="decimal" step="0.5"></label>
         <label>Flour °C<input data-k="temp.flour" data-n type="number" inputmode="decimal" step="0.5"></label>
@@ -44,13 +44,14 @@
         <label>Room °C<input data-k="ferment.room" data-n type="number" inputmode="decimal" step="0.5"></label>
       </div>
       <div class="hint" id="waterHint"></div>
-    </details>
+      </div>
+    </div>
     <div class="ing" data-ing="salt"><label class="sw"><input type="checkbox" data-k="salt.on"><i></i>Salt</label><input class="pct" data-k="salt.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Salt %"><span class="pc">%</span><b class="g" id="g-salt"></b></div>
     <div class="ing" data-ing="oil"><label class="sw"><input type="checkbox" data-k="oil.on"><i></i>Oil</label><input class="pct" data-k="oil.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Oil %"><span class="pc">%</span><b class="g" id="g-oil"></b></div>
     <div class="ing" data-ing="sugar"><label class="sw"><input type="checkbox" data-k="sugar.on"><i></i>Sugar</label><input class="pct" data-k="sugar.pct" data-n type="number" inputmode="decimal" step="0.1" min="0" aria-label="Sugar %"><span class="pc">%</span><b class="g" id="g-sugar"></b></div>
-    <div class="ing"><b>Yeast <small>total, IDY</small></b><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0" aria-label="Yeast %"><span class="pc">%</span><b class="g" id="g-yeast"></b></div>
-    <details class="sub">
-      <summary><span>Fermentation</span><span class="sv"><b id="bulkOut">–</b><small id="coldSum"></small></span></summary>
+    <div class="x" id="x-yeast">
+      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Yeast</b><small id="bulkOut"></small></button><input class="pct" data-k="yeast" data-n type="number" inputmode="decimal" step="0.01" min="0" aria-label="Yeast %"><span class="pc">%</span><b class="g" id="g-yeast"></b></div>
+      <div class="xpanel">
       <div class="row between"><b>Cold ferment</b><span id="coldLabel" class="big"></span></div>
       <input type="range" data-k="ferment.coldDays" data-n min="0.5" max="5" step="0.5">
       <div class="grid3">
@@ -64,9 +65,11 @@
         <button id="suggestBtn" class="small">Suggest yeast</button>
       </div>
       <div class="hint">Estimates only. If your dough runs faster or slower than shown, adjust <i>Speed</i> (1.2 = 20% faster) and it will remember per recipe.</div>
-    </details>
-    <details class="sub">
-      <summary><span>Pre-ferment</span><span class="sv"><b id="pfSumG">–</b><small id="pfSumSub"></small></span></summary>
+      </div>
+    </div>
+    <div class="x" id="x-pf">
+      <div class="ing xhead"><button type="button" class="xb" aria-expanded="false"><b>Pre-ferment</b><small id="pfSumSub"></small></button><span class="fixed" id="pfPct"></span><span class="pc">%</span><b class="g" id="g-pf"></b></div>
+      <div class="xpanel">
       <div class="seg">
         <label><input type="radio" name="pftype" value="none" data-k="pf.type"><span>None</span></label>
         <label><input type="radio" name="pftype" value="poolish" data-k="pf.type"><span>Poolish</span></label>
@@ -78,7 +81,8 @@
         <label id="pfYeastField">Yeast in poolish <small>% of its flour</small><input data-k="pf.yeast" data-n type="number" inputmode="decimal" step="0.01" min="0"></label>
       </div>
       <div id="pfBreakdown"></div>
-    </details>
+      </div>
+    </div>
     <div class="ing total"><b>Dough</b><span></span><span></span><b class="g" id="g-dough"></b></div>
     <div id="warnings"></div>
   </section>

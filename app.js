@@ -57,6 +57,15 @@
     update();
   });
 
+  /* ---------- expandable rows ---------- */
+  document.addEventListener('click', e => {
+    const head = e.target.closest('.xhead');
+    if (!head || e.target.closest('input')) return;
+    const x = head.parentElement, open = !x.classList.contains('open');
+    x.classList.toggle('open', open);
+    $('.xb', head).setAttribute('aria-expanded', open);
+  });
+
   /* ---------- outputs ---------- */
   const pctFmt = (n, dp = 2) => (+n.toFixed(dp)).toString();
 
@@ -74,8 +83,9 @@
     set('flour', T.flour); set('water', T.water);
     set('salt', T.salt, r.salt.on); set('oil', T.oil, r.oil.on); set('sugar', T.sugar, r.sugar.on);
     set('yeast', T.yeast); set('dough', T.dough);
-    $('#pfSumG').textContent = c.hasPf ? `${C.fmt(c.pf.total)} g` : 'None';
-    $('#pfSumSub').textContent = c.hasPf ? `${pfName} · ${pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0)}%` : '';
+    $('#g-pf').textContent = c.hasPf ? C.fmt(c.pf.total) : '–';
+    $('#pfPct').textContent = c.hasPf ? pctFmt(T.flour ? c.pf.total / T.flour * 100 : 0) : '';
+    $('#pfSumSub').textContent = c.hasPf ? pfName : 'none';
     $('#warnings').innerHTML = c.warnings.map(w => `<p class="warn">⚠ ${w}</p>`).join('');
 
     let h = '';
@@ -90,9 +100,8 @@
     $('#pfBreakdown').innerHTML = h;
 
     $('#coldLabel').textContent = `${fe.coldDays} day${+fe.coldDays === 1 ? '' : 's'} at ${fe.fridge}°C`;
-    $('#coldSum').textContent = $('#coldLabel').textContent + ' cold';
     const b = C.bulkHours(r);
-    $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'none needed' : '≈ ' + C.fmtHours(b.hours));
+    $('#bulkOut').textContent = b.hours === null ? '–' : (b.over ? 'no counter bulk' : '≈ ' + C.fmtHours(b.hours) + ' bulk');
     $('#bulkHint').className = 'hint' + (b.over || b.longHours ? ' warn' : '');
     $('#bulkHint').textContent = b.hours === null ? 'Enter a yeast amount.'
       : b.over ? `At ${fe.room}°C this much yeast already over-ferments in the fridge alone. Use less yeast or a shorter cold ferment.`
@@ -100,7 +109,7 @@
       : `Counter at ${fe.room}°C before balling and going in the fridge, with ${C.fmt(C.effectiveYeast(r), 3)}% effective yeast${r.pf.type === 'sourdough' ? ' (incl. starter)' : ''}.`;
 
     const w = C.waterTemp(r);
-    $('#waterTemp').textContent = `${C.fmt(w.temp, 1)} °C`;
+    $('#waterSub').textContent = `use water at ${C.fmt(w.temp, 1)} °C`;
     $('#waterHint').className = 'hint' + (w.temp < 1 || w.temp > 43 ? ' warn' : '');
     $('#waterHint').textContent = w.temp < 1 ? 'Colder than tap water can give. Use ice, or aim for a warmer dough.'
       : w.temp > 43 ? 'Too hot, it would harm the yeast. Cool the flour/pre-ferment or aim for a lower dough temp.'
