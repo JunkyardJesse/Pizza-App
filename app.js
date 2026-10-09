@@ -202,9 +202,11 @@
   $('#exportBtn').onclick = async () => {
     const photos = {};
     for (const rec of recipes) for (const id of rec.photos || []) { const b = await getPhoto(id); if (b) photos[id] = await b64(b); }
+    const json = JSON.stringify({ recipes, photos }), name = `pizza-recipes-${new Date().toISOString().slice(0, 10)}.json`;
+    if (window.NativeApp && await NativeApp.shareTextFile(name, json, 'Pizza recipes backup')) return;
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({ recipes, photos })], { type: 'application/json' }));
-    a.download = `pizza-recipes-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.download = name; a.click();
   };
   $('#importInput').onchange = async (e) => {
     try {

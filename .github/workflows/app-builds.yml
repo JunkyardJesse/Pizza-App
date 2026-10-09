@@ -1,0 +1,128 @@
+name: App builds (iOS + Android)
+
+# Every push builds both apps to prove they compile, and produces an Android test APK you can
+# install on a phone (Actions run → Artifacts). Store uploads only happen when you run this
+# workflow by hand with "release" ticked, once the signing secrets below are added.
+#
+# Secrets (repo Settings → Secrets and variables → Actions):
+#   Android  ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#   iOS      APPLE_TEAM_ID, APPSTORE_API_KEY_ID, APPSTORE_API_ISSUER_ID, APPSTORE_API_PRIVATE_KEY
+on:
+  push:
+    branches: [main, app-store]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Build signed store files (AAB for Google Play, upload iOS build to TestFlight)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: app-builds-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUILD_NUMBER: ${{ github.run_number }}
+  RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.release }}
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm install --no-audit --no-fund
+      - run: bash scripts/native-setup.sh android
+
+      - name: Build test APK (install this on an Android phone)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build signed Play Store bundle (.aab)
+        if: env.RELEASE == 'true' && env.HAS_KEYSTORE == 'true'
+        working-directory: android
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          ./gradlew bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/upload.keystore" \
+            -Pandroid.injected.signing.store.password="$KS_PASS" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASS"
+
+      - name: Release requested but no keystore secret
+        if: env.RELEASE == 'true' && env.HAS_KEYSTORE != 'true'
+        run: echo "::warning::Add the ANDROID_KEYSTORE_* secrets to build a signed Play Store bundle."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+  ios:
+    runs-on: macos-latest
+    env:
+      HAS_APPLE: ${{ secrets.APPSTORE_API_PRIVATE_KEY != '' && secrets.APPLE_TEAM_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: bash scripts/native-setup.sh ios
+
+      - name: Locate Xcode project
+        run: |
+          if [ -d ios/App/App.xcworkspace ]; then echo "XC=-workspace ios/App/App.xcworkspace" >> "$GITHUB_ENV"
+          else echo "XC=-project ios/App/App.xcodeproj" >> "$GITHUB_ENV"; fi
+
+      - name: Compile check (simulator, no signing needed)
+        if: env.RELEASE != 'true' || env.HAS_APPLE != 'true'
+        run: |
+          xcodebuild $XC -scheme App -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -n 25
+
+      - name: Archive and upload to TestFlight
+        if: env.RELEASE == 'true' && env.HAS_APPLE == 'true'
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+          KEY_P8: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+        run: |
+          set -o pipefail
+          KEY_PATH="$RUNNER_TEMP/AuthKey_$KEY_ID.p8"; printf '%s\n' "$KEY_P8" > "$KEY_PATH"
+          AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY_PATH" -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID")
+          VERSION=$(node -p "require('./package.json').version")
+          xcodebuild $XC -scheme App -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" "${AUTH[@]}" \
+            DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$VERSION" archive | tail -n 25
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}" | tail -n 25
+          echo "Uploaded build $BUILD_NUMBER (version $VERSION) to App Store Connect / TestFlight."

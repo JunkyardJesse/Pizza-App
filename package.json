@@ -1,0 +1,22 @@
+{
+  "name": "pizza-dough",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pizza dough calculator, packaged for the App Store and Google Play with Capacitor.",
+  "scripts": {
+    "build": "node scripts/build-web.mjs",
+    "assets": "capacitor-assets generate --iconBackgroundColor '#b4361f' --iconBackgroundColorDark '#b4361f' --splashBackgroundColor '#f7f3ee' --splashBackgroundColorDark '#171210'",
+    "sync": "npm run build && cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/share": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.0.0"
+  }
+}

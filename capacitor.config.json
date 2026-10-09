@@ -1,0 +1,9 @@
+{
+  "appId": "com.junkyardjesse.pizzadough",
+  "appName": "Pizza Dough",
+  "webDir": "www",
+  "backgroundColor": "#f7f3ee",
+  "ios": {
+    "contentInset": "never"
+  }
+}
